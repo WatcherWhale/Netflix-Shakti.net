@@ -4,6 +4,12 @@ It uses asynchronous methods to obtain information from the Shakti api.
 
 ## Usage
 **For more info go to the wiki pages**
+
+**Download from NuGet**
+```nuget
+PM> Install-Package NetflixShakti.net
+```
+
 ```c#
 using NetflixShakti;
 
