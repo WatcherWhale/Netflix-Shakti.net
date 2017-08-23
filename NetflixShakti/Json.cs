@@ -34,7 +34,7 @@ namespace NetflixShakti
     }
 }
 
-namespace Netflix.Profiles
+namespace NetflixShakti.Profiles
 {
     public class ProfileContainer
     {

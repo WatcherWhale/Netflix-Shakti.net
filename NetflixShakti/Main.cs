@@ -1,4 +1,4 @@
-﻿using Netflix.Profiles;
+﻿using NetflixShakti.Profiles;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -18,14 +18,14 @@ namespace NetflixShakti
         public string Id { get; set; }
         public ProfileContainer Profiles { get; set; }
 
-        public Netflix(CookieContainer cookies,int id)
+        public Netflix(CookieContainer cookies,string id)
         {
             _cookieJar = cookies;
 
             LoadNetflixProfiles();
         }
 
-        public Netflix(string cookies,int id)
+        public Netflix(string cookies,string id)
         {
             _cookieJar = BuildCoockieContainer(cookies);
             LoadNetflixProfiles();
@@ -132,7 +132,7 @@ namespace NetflixShakti
             return Task.Run(() => SwitchProfileTask(prof));
         }
 
-        public void SwitchProfileTask(Profile prof)
+        private void SwitchProfileTask(Profile prof)
         {
             WebRequest request = WebRequest.Create(apiUrl + Id + "/profiles/switch?switchProfileGuid=" + prof.guid);
             HttpWebRequest webRequest = request as HttpWebRequest;
@@ -152,10 +152,10 @@ namespace NetflixShakti
         #endregion
 
         #region Static Functions
-        public static int GetIdFromSource(string browserSource)
+        public static string GetIdFromSource(string browserSource)
         {
             int StartIndex = browserSource.LastIndexOf("\"BUILD_IDENTIFIER\":\"") + "\"BUILD_IDENTIFIER\":\"".Length;
-            return int.Parse(browserSource.Substring(StartIndex, 8));
+            return browserSource.Substring(StartIndex, 8);
         }
 
         public static CookieContainer BuildCoockieContainer(string cookies)
