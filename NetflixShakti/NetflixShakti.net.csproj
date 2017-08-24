@@ -43,8 +43,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Lists.cs" />
     <Compile Include="Main.cs" />
-    <Compile Include="Json.cs" />
+    <Compile Include="Histroy.cs" />
+    <Compile Include="Profiles.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
