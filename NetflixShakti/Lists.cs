@@ -10,7 +10,7 @@ namespace NetflixShakti.Lists
     public class Lister
     {
         public List<List> lists;
-        public List<List> videos;
+        public List<Video> videos;
     }
 
     public class List
@@ -68,8 +68,8 @@ namespace NetflixShakti.Lists
     public class Video
     {
         public string title;
-
         public VideoSummary summary;
+        public Boxarts boxarts;
     }
 
     public class VideoSummary
@@ -79,5 +79,24 @@ namespace NetflixShakti.Lists
 
         public bool isNSRE;
         public bool isOriginal;
+    }
+
+    public class Boxarts
+    {
+        public WebpImage Image { get { return imageContainer.webp; } }
+
+        [JsonProperty(PropertyName = "_342x192")]
+        BannerImageContainer imageContainer;
+    }
+
+    public class BannerImageContainer
+    {
+        public WebpImage webp;
+    }
+
+    public class WebpImage
+    {
+        public string url;
+        public string image_key;
     }
 }

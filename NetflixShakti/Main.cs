@@ -10,29 +10,32 @@ using Newtonsoft.Json;
 
 using NetflixShakti.History;
 using NetflixShakti.Profiles;
+using NetflixShakti.Lists;
 
 namespace NetflixShakti
 {
     public class Netflix : IDisposable
     {
         private CookieContainer _cookieJar;
-        readonly string apiUrl = "https://www.netflix.com/api/shakti/";
-
         public string Id { get; set; }
+        public string LolomoId { get; set; }
+
         public ProfileContainer Profiles { get; set; }
 
-        public Netflix(CookieContainer cookies,string id)
+        private Netflix(CookieContainer cookies, string id, string lolomoId)
         {
             _cookieJar = cookies;
             Id = id;
-
+            LolomoId = lolomoId;
             LoadNetflixProfilesTask();
         }
 
-        public Netflix(string cookies,string id)
+        [Obsolete("Use Netflix.BuildFromSource instead")]
+        public Netflix(string cookies,string id, string lolomoId)
         {
             _cookieJar = BuildCoockieContainer(cookies);
             Id = id;
+            LolomoId = lolomoId;
 
             LoadNetflixProfilesTask();
         }
@@ -52,7 +55,7 @@ namespace NetflixShakti
 
                 while (loading)
                 {
-                    WebRequest request = WebRequest.Create(apiUrl + Id + "/viewingactivity?pg=" + pages.Count);
+                    WebRequest request = WebRequest.Create(ApiUrls.baseAPIUrl + Id + "/viewingactivity?pg=" + pages.Count);
                     HttpWebRequest webRequest = request as HttpWebRequest;
                     webRequest.CookieContainer = _cookieJar;
 
@@ -135,7 +138,7 @@ namespace NetflixShakti
 
         private void LoadNetflixProfilesTask()
         {
-            WebRequest request = WebRequest.Create(apiUrl + Id + "/profiles");
+            WebRequest request = WebRequest.Create(ApiUrls.baseAPIUrl + Id + "/profiles");
             HttpWebRequest webRequest = request as HttpWebRequest;
             webRequest.CookieContainer = _cookieJar;
 
@@ -159,7 +162,7 @@ namespace NetflixShakti
 
         private void SwitchProfileTask(Profile prof)
         {
-            WebRequest request = WebRequest.Create(apiUrl + Id + "/profiles/switch?switchProfileGuid=" + prof.guid);
+            WebRequest request = WebRequest.Create(ApiUrls.baseAPIUrl + Id + "/profiles/switch?switchProfileGuid=" + prof.guid);
             HttpWebRequest webRequest = request as HttpWebRequest;
             webRequest.CookieContainer = _cookieJar;
 
@@ -176,9 +179,57 @@ namespace NetflixShakti
 
             LoadNetflixProfilesTask();
         }
+
+        public Task<Lister> GetHomePageList()
+        {
+            return Task.Run(() => GetHomePageListTask());
+        }
+
+        private Lister GetHomePageListTask()
+        {
+            WebRequest request = WebRequest.Create(ApiUrls.baseAPIUrl + Id + ApiUrls.GetLists.Replace("{LOLOMOID}", LolomoId));
+            HttpWebRequest webRequest = request as HttpWebRequest;
+            webRequest.CookieContainer = _cookieJar;
+
+            Lister lister;
+
+            using (HttpWebResponse res = (HttpWebResponse)webRequest.GetResponse())
+            using (Stream stream = res.GetResponseStream())
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                string json = reader.ReadToEnd();
+
+                lister = JsonConvert.DeserializeObject<Lister>(json);
+            }
+
+            return lister;
+        }
         #endregion
 
         #region Static Functions
+        public static Netflix BuildFromSource(CookieContainer cookies,string source)
+        {
+            string id = GetIdFromSource(source);
+            string lolomo = GetLolomoFromSource(source);
+
+            Netflix netflix = new Netflix(cookies,id,lolomo);
+            return netflix;
+        }
+
+        public static string GetLolomoFromSource(string source)
+        {
+            string finder = "\"billboards\":{\"";
+            int startIndex = source.IndexOf(finder) + finder.Length;
+
+            string ender = "\":{\"data\":";
+            int endIndex = source.IndexOf(ender, startIndex);
+
+            int lenght = endIndex - startIndex;
+            string lolomo = source.Substring(startIndex, lenght).Split('_')[0];
+
+            return lolomo;
+        }
+
         public static string GetIdFromSource(string browserSource)
         {
             int StartIndex = browserSource.LastIndexOf("\"BUILD_IDENTIFIER\":\"") + "\"BUILD_IDENTIFIER\":\"".Length;
