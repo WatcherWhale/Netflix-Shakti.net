@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NetflixShakti
+namespace NetflixShakti.History
 {
     public class ViewHistory
     {
@@ -26,7 +26,7 @@ namespace NetflixShakti
 
         public int movieID;
         public long date;
-        public int duration;
+        public double duration;
 
         public int index;
         public int bookmark;

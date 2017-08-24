@@ -1,12 +1,15 @@
-﻿using NetflixShakti.Profiles;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+
+using Newtonsoft.Json;
+
+using NetflixShakti.History;
+using NetflixShakti.Profiles;
 
 namespace NetflixShakti
 {
@@ -101,6 +104,25 @@ namespace NetflixShakti
             vh.size = vh.viewedItems.Count;
 
             return vh;
+        }
+
+        public Task<TimeSpan> GetTotalWatchTime()
+        {
+            return Task.Run(() => GetTotalWatchTimeTask());
+        }
+
+        private TimeSpan GetTotalWatchTimeTask()
+        {
+            var pages = GetViewHistoryTask();
+            var history = GetViewHistoryFromPagesTask(pages);
+
+            double totalTime = 0;
+            foreach (var item in history.viewedItems)
+            {
+                totalTime += item.duration;
+            }
+
+            return TimeSpan.FromSeconds(totalTime);
         }
 
         public Task LoadNetflixProfiles()

@@ -43,7 +43,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Example.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Json.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
