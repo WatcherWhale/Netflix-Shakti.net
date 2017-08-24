@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.26430.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetflixShakti.net", "NetflixShakti\NetflixShakti.net.csproj", "{4324C982-8C17-4274-9E11-B2C234D8E3C3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetflixShaktiExample", "NetflixShaktiExample\NetflixShaktiExample.csproj", "{132F0B06-C9C1-43DF-A4F7-FC53F9901ACF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{4324C982-8C17-4274-9E11-B2C234D8E3C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4324C982-8C17-4274-9E11-B2C234D8E3C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4324C982-8C17-4274-9E11-B2C234D8E3C3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{132F0B06-C9C1-43DF-A4F7-FC53F9901ACF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{132F0B06-C9C1-43DF-A4F7-FC53F9901ACF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{132F0B06-C9C1-43DF-A4F7-FC53F9901ACF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{132F0B06-C9C1-43DF-A4F7-FC53F9901ACF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

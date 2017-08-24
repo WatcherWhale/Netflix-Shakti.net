@@ -40,6 +40,26 @@ namespace NetflixShakti.Profiles
     {
         public List<Profile> profiles = new List<Profile>();
         public Profile active;
+
+        public Profile GetProfileByName(string name)
+        {
+            foreach (Profile prof in profiles)
+            {
+                if (prof.firstName == name)
+                    return prof;
+            }
+            return null;
+        }
+
+        public Profile GetProfileByGuid(string guid)
+        {
+            foreach (Profile prof in profiles)
+            {
+                if (prof.guid == guid)
+                    return prof;
+            }
+            return null;
+        }
     }
 
     public class Profile
@@ -48,11 +68,41 @@ namespace NetflixShakti.Profiles
         public string rawFirstName;
         public string guid;
         public string experience;
+        public string avatarName;
 
         public bool isAccountOwner;
         public bool isFirstUse;
         public bool isActive;
         public bool isDefault;
         public bool canEdit;
+
+        public Task<System.IO.Stream> GetAvatarImageStream(int size)
+        {
+            return Task.Run(() => GetAvatarImageStreamTask(size));
+        }
+
+        private System.IO.Stream GetAvatarImageStreamTask(int size)
+        {
+            int icon = int.Parse(avatarName.Substring("icon".Length));
+            string url = $"https://secure.netflix.com/ffe/profiles/avatars_v2/{size}x{size}/PICON_0{icon}.png";
+
+            byte[] imageData = new System.Net.WebClient().DownloadData(url);
+
+            System.IO.MemoryStream memoryStream = new System.IO.MemoryStream(imageData);
+            return memoryStream;
+        }
+    }
+
+    public class AvatarSizes
+    {
+        public const int Size32 = 32;
+        public const int Size50 = 50;
+        public const int Size64 = 64;
+        public const int Size80 = 80;
+        public const int Size100 = 100;
+        public const int Size112 = 112;
+        public const int Size160 = 160;
+        public const int Size200 = 200;
+        public const int Size320 = 320;
     }
 }

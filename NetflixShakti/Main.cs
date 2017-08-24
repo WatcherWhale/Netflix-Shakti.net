@@ -24,14 +24,17 @@ namespace NetflixShakti
         public Netflix(CookieContainer cookies,string id)
         {
             _cookieJar = cookies;
+            Id = id;
 
-            LoadNetflixProfiles();
+            LoadNetflixProfilesTask();
         }
 
         public Netflix(string cookies,string id)
         {
             _cookieJar = BuildCoockieContainer(cookies);
-            LoadNetflixProfiles();
+            Id = id;
+
+            LoadNetflixProfilesTask();
         }
 
         #region Tasks
@@ -170,6 +173,8 @@ namespace NetflixShakti
 
                 _cookieJar = cc;
             }
+
+            LoadNetflixProfilesTask();
         }
         #endregion
 
