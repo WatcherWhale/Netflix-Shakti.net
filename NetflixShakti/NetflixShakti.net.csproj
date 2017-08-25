@@ -11,6 +11,7 @@
     <AssemblyName>NetflixShakti.net</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -43,7 +44,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ApiUrls.cs" />
+    <Compile Include="ApiVars.cs" />
+    <Compile Include="HttpUtility.cs" />
     <Compile Include="Json\JsonUtilities.cs" />
     <Compile Include="Json\Lists.cs" />
     <Compile Include="Json\Person.cs" />

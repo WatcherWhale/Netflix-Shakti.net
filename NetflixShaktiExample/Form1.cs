@@ -26,6 +26,7 @@ namespace NetflixShaktiExample
 
         private void webBrowser1_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
         {
+            return;
             if (webBrowser1.Url.AbsolutePath == "/browse")
             {
                 // '/browse' path means that the user is logged in
@@ -122,6 +123,11 @@ namespace NetflixShaktiExample
             {
                 listBox1.Items.Add(video.title);
             }
+        }
+
+        private async void button2_Click(object sender, EventArgs e)
+        {
+            //_netflix = await Netflix.Login(emailBox.Text, passwordBox.Text);
         }
     }
 }

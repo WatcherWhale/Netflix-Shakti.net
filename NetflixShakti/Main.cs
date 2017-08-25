@@ -246,18 +246,23 @@ namespace NetflixShakti
             return result;
         }
 
-        public static Task<Netflix> Login(string email,string password)
+        private static Task<Netflix> Login(string email,string password)
         {
             return Task.Run(() => LoginTask(email, password));
         }
 
-        public static Netflix LoginTask(string email, string password)
+        private static Netflix LoginTask(string email, string password)
         {
             Netflix netflix;
 
             WebRequest request = WebRequest.Create(ApiVars.netflixUrl + "login");
             HttpWebRequest webRequest = request as HttpWebRequest;
+
+            //Headers
+            webRequest.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
             webRequest.Method = "POST";
+            webRequest.ContentType = "application/x-www-form-urlencoded";
+            webRequest.CookieContainer = new CookieContainer();
 
             NameValueCollection postQuery = new NameValueCollection();
 
@@ -268,11 +273,10 @@ namespace NetflixShakti
             postQuery.Add("rememberMe", "false");
             postQuery.Add("flow", "websiteSignUp");
 
-            string postData = postQuery.ToString();
-
             using (var writer = new StreamWriter(webRequest.GetRequestStream()))
             {
-                writer.Write(postData);
+                string postdata = HttpUtility.BuildPostData(postQuery);
+                writer.Write(postdata);
                 writer.Flush();
             }
 
@@ -280,6 +284,7 @@ namespace NetflixShakti
             using (var stream = res.GetResponseStream())
             using (var reader = new StreamReader(stream))
             {
+                var cookHeader = res.Headers[HttpResponseHeader.SetCookie];
                 var webRes = res as HttpWebResponse;
                 var cookies = webRes.Cookies;
 
