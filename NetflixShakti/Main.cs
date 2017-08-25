@@ -13,6 +13,7 @@ using NetflixShakti.Json.Profiles;
 using NetflixShakti.Json.Lists;
 using NetflixShakti.Json.Search;
 using NetflixShakti.Json;
+using System.Collections.Specialized;
 
 namespace NetflixShakti
 {
@@ -20,6 +21,7 @@ namespace NetflixShakti
     {
         private CookieContainer _cookieJar;
         public string Id { get; set; }
+        [Obsolete("Is not working at the moment")]
         public string LolomoId { get; set; }
 
         public ProfileContainer Profiles { get; set; }
@@ -243,6 +245,55 @@ namespace NetflixShakti
 
             return result;
         }
+
+        public static Task<Netflix> Login(string email,string password)
+        {
+            return Task.Run(() => LoginTask(email, password));
+        }
+
+        public static Netflix LoginTask(string email, string password)
+        {
+            Netflix netflix;
+
+            WebRequest request = WebRequest.Create(ApiVars.netflixUrl + "login");
+            HttpWebRequest webRequest = request as HttpWebRequest;
+            webRequest.Method = "POST";
+
+            NameValueCollection postQuery = new NameValueCollection();
+
+            postQuery.Add("email", email);
+            postQuery.Add("password", password);
+            postQuery.Add("action", "loginAction");
+            postQuery.Add("mode", "login");
+            postQuery.Add("rememberMe", "false");
+            postQuery.Add("flow", "websiteSignUp");
+
+            string postData = postQuery.ToString();
+
+            using (var writer = new StreamWriter(webRequest.GetRequestStream()))
+            {
+                writer.Write(postData);
+                writer.Flush();
+            }
+
+            using (var res = webRequest.GetResponse())
+            using (var stream = res.GetResponseStream())
+            using (var reader = new StreamReader(stream))
+            {
+                var webRes = res as HttpWebResponse;
+                var cookies = webRes.Cookies;
+
+                CookieContainer cc = new CookieContainer();
+                cc.Add(cookies);
+
+                string source = reader.ReadToEnd();
+
+                netflix = Netflix.BuildFromSource(cc, source);
+            }
+
+            return netflix;
+        }
+
         #endregion
 
         #region Static Functions
