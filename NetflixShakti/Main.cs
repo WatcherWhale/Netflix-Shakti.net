@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 using Newtonsoft.Json;
 
-using NetflixShakti.History;
-using NetflixShakti.Profiles;
-using NetflixShakti.Lists;
+using NetflixShakti.Json.History;
+using NetflixShakti.Json.Profiles;
+using NetflixShakti.Json.Lists;
 
 namespace NetflixShakti
 {
@@ -22,20 +22,20 @@ namespace NetflixShakti
 
         public ProfileContainer Profiles { get; set; }
 
-        private Netflix(CookieContainer cookies, string id, string lolomoId)
+        private Netflix(CookieContainer cookies, string id)
         {
             _cookieJar = cookies;
             Id = id;
-            LolomoId = lolomoId;
+            //LolomoId = lolomoId;
             LoadNetflixProfilesTask();
         }
 
         [Obsolete("Use Netflix.BuildFromSource instead")]
-        public Netflix(string cookies,string id, string lolomoId)
+        public Netflix(string cookies,string id)
         {
             _cookieJar = BuildCoockieContainer(cookies);
             Id = id;
-            LolomoId = lolomoId;
+            //LolomoId = lolomoId;
 
             LoadNetflixProfilesTask();
         }
@@ -55,7 +55,7 @@ namespace NetflixShakti
 
                 while (loading)
                 {
-                    WebRequest request = WebRequest.Create(ApiUrls.baseAPIUrl + Id + "/viewingactivity?pg=" + pages.Count);
+                    WebRequest request = WebRequest.Create(ApiVars.baseAPIUrl + Id + "/viewingactivity?pg=" + pages.Count);
                     HttpWebRequest webRequest = request as HttpWebRequest;
                     webRequest.CookieContainer = _cookieJar;
 
@@ -138,7 +138,7 @@ namespace NetflixShakti
 
         private void LoadNetflixProfilesTask()
         {
-            WebRequest request = WebRequest.Create(ApiUrls.baseAPIUrl + Id + "/profiles");
+            WebRequest request = WebRequest.Create(ApiVars.baseAPIUrl + Id + "/profiles");
             HttpWebRequest webRequest = request as HttpWebRequest;
             webRequest.CookieContainer = _cookieJar;
 
@@ -162,7 +162,7 @@ namespace NetflixShakti
 
         private void SwitchProfileTask(Profile prof)
         {
-            WebRequest request = WebRequest.Create(ApiUrls.baseAPIUrl + Id + "/profiles/switch?switchProfileGuid=" + prof.guid);
+            WebRequest request = WebRequest.Create(ApiVars.baseAPIUrl + Id + "/profiles/switch?switchProfileGuid=" + prof.guid);
             HttpWebRequest webRequest = request as HttpWebRequest;
             webRequest.CookieContainer = _cookieJar;
 
@@ -187,7 +187,7 @@ namespace NetflixShakti
 
         private Lister GetHomePageListTask()
         {
-            WebRequest request = WebRequest.Create(ApiUrls.baseAPIUrl + Id + ApiUrls.GetLists.Replace("{LOLOMOID}", LolomoId));
+            WebRequest request = WebRequest.Create(ApiVars.baseAPIUrl + Id + ApiVars.GetLists.Replace("{LOLOMOID}", LolomoId));
             HttpWebRequest webRequest = request as HttpWebRequest;
             webRequest.CookieContainer = _cookieJar;
 
@@ -204,22 +204,49 @@ namespace NetflixShakti
 
             return lister;
         }
+
+        public string SearchTask(string search)
+        {
+            WebRequest request = WebRequest.Create(ApiVars.baseAPIUrl + Id + "/pathEvaluator?withSize=true&materialize=true&searchAPIV2=false");
+            HttpWebRequest webRequest = request as HttpWebRequest;
+            webRequest.CookieContainer = _cookieJar;
+
+            webRequest.Method = "POST";
+            webRequest.ContentType = "application/json";
+
+            using (var writer = new StreamWriter(webRequest.GetRequestStream()))
+            {
+                var json = ApiVars.SearchJson.Replace("{SEARCH QUERY}", search);
+                writer.Write(json);
+                writer.Flush();
+            }
+
+            string Json = "";
+            using (HttpWebResponse res = (HttpWebResponse)webRequest.GetResponse())
+            using (Stream stream = res.GetResponseStream())
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                Json = reader.ReadToEnd();
+            }
+
+            return Json;
+        }
         #endregion
 
         #region Static Functions
         public static Netflix BuildFromSource(CookieContainer cookies,string source)
         {
             string id = GetIdFromSource(source);
-            string lolomo = GetLolomoFromSource(source);
+            //string lolomo = GetLolomoFromSource(source);
 
-            Netflix netflix = new Netflix(cookies,id,lolomo);
+            Netflix netflix = new Netflix(cookies,id);
             return netflix;
         }
 
         public static string GetLolomoFromSource(string source)
         {
             string finder = "\"billboards\":{\"";
-            int startIndex = source.IndexOf(finder) + finder.Length;
+            int startIndex = source.LastIndexOf(finder) + finder.Length;
 
             string ender = "\":{\"data\":";
             int endIndex = source.IndexOf(ender, startIndex);

@@ -31,18 +31,27 @@ namespace NetflixShaktiExample
                 // '/browse' path means that the user is logged in
                 webBrowser1.DocumentCompleted -= webBrowser1_DocumentCompleted;
 
-                string source = webBrowser1.DocumentText;
+                Task.Run(() =>
+                {
+                    System.Threading.Thread.Sleep(5000);
+                    string source ="";
+                    Invoke(new MethodInvoker(delegate { source = webBrowser1.DocumentText; }));
 
-                string id = Netflix.GetIdFromSource(source);
-                CookieContainer container = Netflix.BuildCoockieContainer(webBrowser1.Document.Cookie);
+                    string cookies = "";
+                    Invoke(new MethodInvoker(delegate { cookies = webBrowser1.Document.Cookie; }));
 
-                SetupNetflix(container, id);
+                    CookieContainer container = Netflix.BuildCoockieContainer(cookies);
+
+                    
+
+                    SetupNetflix(container, source);
+                });
             }
         }
 
-        private async void SetupNetflix(CookieContainer container, string id)
+        private async void SetupNetflix(CookieContainer container, string source)
         {
-            _netflix = new Netflix(container, id);
+            _netflix = Netflix.BuildFromSource(container,source);
 
             var stream = await _netflix.Profiles.active.GetAvatarImageStream(AvatarSizes.Size64);
             profilesDropDown.Image = Image.FromStream(stream);
@@ -61,6 +70,8 @@ namespace NetflixShaktiExample
 
                 dropItem.Click += DropItem_Click;
             }
+
+            _netflix.GetHomePageList();
         }
 
         private async void LoadHistory()
@@ -100,6 +111,12 @@ namespace NetflixShaktiExample
             watchTime.Text = "Loading...";
 
             Task.Run(() => LoadHistory());
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            string output = _netflix.SearchTask("Tom Cruise");
+            textBox1.Text = output;
         }
     }
 }

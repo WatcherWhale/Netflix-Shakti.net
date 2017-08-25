@@ -5,7 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NetflixShakti.Lists
+using NetflixShakti.Json.Videos;
+
+namespace NetflixShakti.Json.Lists
 {
     public class Lister
     {
@@ -63,40 +65,5 @@ namespace NetflixShakti.Lists
         [JsonProperty(PropertyName = "7")]
         List<string> v7;
         #endregion
-    }
-
-    public class Video
-    {
-        public string title;
-        public VideoSummary summary;
-        public Boxarts boxarts;
-    }
-
-    public class VideoSummary
-    {
-        public int id;
-        public string type;
-
-        public bool isNSRE;
-        public bool isOriginal;
-    }
-
-    public class Boxarts
-    {
-        public WebpImage Image { get { return imageContainer.webp; } }
-
-        [JsonProperty(PropertyName = "_342x192")]
-        BannerImageContainer imageContainer;
-    }
-
-    public class BannerImageContainer
-    {
-        public WebpImage webp;
-    }
-
-    public class WebpImage
-    {
-        public string url;
-        public string image_key;
     }
 }

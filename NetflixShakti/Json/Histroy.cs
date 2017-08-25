@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NetflixShakti.History
+namespace NetflixShakti.Json.History
 {
     public class ViewHistory
     {
