@@ -11,6 +11,8 @@ using Newtonsoft.Json;
 using NetflixShakti.Json.History;
 using NetflixShakti.Json.Profiles;
 using NetflixShakti.Json.Lists;
+using NetflixShakti.Json.Search;
+using NetflixShakti.Json;
 
 namespace NetflixShakti
 {
@@ -205,7 +207,12 @@ namespace NetflixShakti
             return lister;
         }
 
-        public string SearchTask(string search)
+        public Task<SearchResult> Search(string query)
+        {
+            return Task.Run(() => SearchTask(query));
+        }
+
+        private SearchResult SearchTask(string search)
         {
             WebRequest request = WebRequest.Create(ApiVars.baseAPIUrl + Id + "/pathEvaluator?withSize=true&materialize=true&searchAPIV2=false");
             HttpWebRequest webRequest = request as HttpWebRequest;
@@ -221,15 +228,20 @@ namespace NetflixShakti
                 writer.Flush();
             }
 
-            string Json = "";
+            SearchResult result;
             using (HttpWebResponse res = (HttpWebResponse)webRequest.GetResponse())
             using (Stream stream = res.GetResponseStream())
             using (StreamReader reader = new StreamReader(stream))
             {
-                Json = reader.ReadToEnd();
+                string json = reader.ReadToEnd();
+
+                json = JsonUtilities.RemoveProperties(json, "$size");
+                json = JsonUtilities.RemoveProperties(json, "size");
+
+                result = JsonConvert.DeserializeObject<SearchResult>(json);
             }
 
-            return Json;
+            return result;
         }
         #endregion
 

@@ -8,13 +8,13 @@ using NetflixShakti.Json.Videos;
 
 namespace NetflixShakti.Json.Search
 {
-    class SearchResult
+    public class SearchResult
     {
-
+        public SearchValue value;
     }
 
-    class SearchValue
+    public class SearchValue
     {
-        List<Video> videos;
+        public IDictionary<string,Video> videos;
     }
 }

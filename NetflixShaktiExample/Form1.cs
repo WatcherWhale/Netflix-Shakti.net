@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -9,9 +10,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using NetflixShakti;
-using NetflixShakti.History;
-using NetflixShakti.Profiles;
-using System.Net;
+using NetflixShakti.Json.History;
+using NetflixShakti.Json.Profiles;
 
 namespace NetflixShaktiExample
 {
@@ -33,7 +33,7 @@ namespace NetflixShaktiExample
 
                 Task.Run(() =>
                 {
-                    System.Threading.Thread.Sleep(5000);
+                    //System.Threading.Thread.Sleep(5000);
                     string source ="";
                     Invoke(new MethodInvoker(delegate { source = webBrowser1.DocumentText; }));
 
@@ -113,10 +113,15 @@ namespace NetflixShaktiExample
             Task.Run(() => LoadHistory());
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private async void button1_Click(object sender, EventArgs e)
         {
-            string output = _netflix.SearchTask("Tom Cruise");
-            textBox1.Text = output;
+            listBox1.Items.Clear();
+            var output = await _netflix.Search(textBox2.Text);
+            
+            foreach (var video in output.value.videos.Values)
+            {
+                listBox1.Items.Add(video.title);
+            }
         }
     }
 }
