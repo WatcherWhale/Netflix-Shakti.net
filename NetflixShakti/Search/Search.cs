@@ -199,7 +199,7 @@ namespace NetflixShakti.Search
 
     public class SearchName
     {
-        internal int? ID = null;
+        internal long? ID = null;
         internal string NAME = null;
 
         public SearchName(int id)

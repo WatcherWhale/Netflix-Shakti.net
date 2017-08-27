@@ -25,7 +25,7 @@ namespace NetflixShakti.Json.History
         public string seriesTitle;
         public int series;
 
-        public int movieID;
+        public long movieID;
         public long date;
         public double duration;
 

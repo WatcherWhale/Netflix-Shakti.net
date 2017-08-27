@@ -26,10 +26,8 @@ namespace NetflixShakti.Json.Lists
         public string type;
         public string context;
 
-        public int lenght;
-
-        public int genreId;
-        public int videoId;
+        public long genreId;
+        public long videoId;
 
         public List<string> GetVideoIds()
         {

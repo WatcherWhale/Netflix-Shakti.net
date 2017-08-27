@@ -21,7 +21,7 @@ namespace NetflixShakti.Genres
     public class Genre
     {
         public string Name { get; internal set; }
-        public int Id { get; internal set; }
+        public long Id { get; internal set; }
     }
 }
 
@@ -30,6 +30,6 @@ namespace NetflixShakti.Persons
     public class Person
     {
         public string Name { get; internal set; }
-        public int Id { get; internal set; }
+        public long Id { get; internal set; }
     }
 }

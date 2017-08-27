@@ -8,7 +8,7 @@ namespace NetflixShakti.Json.Persons
 {
     public class Person
     {
-        public int id;
+        public long id;
         public string name;
     }
 }

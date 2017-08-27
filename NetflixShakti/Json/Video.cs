@@ -20,7 +20,7 @@ namespace NetflixShakti.Json.Videos
 
     public class VideoSummary
     {
-        public int id;
+        public long id;
         public string type;
 
         public bool isNSRE;
