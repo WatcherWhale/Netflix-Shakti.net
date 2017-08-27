@@ -66,8 +66,9 @@ namespace NetflixShaktiExample
 
                 var task = prof.GetAvatarImageStream(AvatarSizes.Size64);
 
-                var dropItem = profilesDropDown.DropDownItems.Add(prof.firstName);
-                dropItem.Image = Image.FromStream(await task);
+                ToolStripItem dropItem = null;
+                Invoke(new MethodInvoker(delegate { dropItem = profilesDropDown.DropDownItems.Add(prof.firstName); }));
+                Invoke(new MethodInvoker(async delegate { dropItem.Image = Image.FromStream(await task); }));
 
                 dropItem.Click += DropItem_Click;
             }
