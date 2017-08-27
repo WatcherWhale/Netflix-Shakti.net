@@ -209,13 +209,15 @@ namespace NetflixShakti
             return lister;
         }
 
-        public Task<SearchResult> Search(string query)
+        public Task<SearchResult> Search(Search.SearchRequest request)
         {
-            return Task.Run(() => SearchTask(query));
+            return Task.Run(() => SearchTask(request));
         }
 
-        private SearchResult SearchTask(string search)
+        private SearchResult SearchTask(Search.SearchRequest searchRequest)
         {
+            var sRequest = searchRequest.Build();
+
             WebRequest request = WebRequest.Create(ApiVars.baseAPIUrl + Id + "/pathEvaluator?withSize=true&materialize=true&searchAPIV2=false");
             HttpWebRequest webRequest = request as HttpWebRequest;
             webRequest.CookieContainer = _cookieJar;
@@ -225,7 +227,7 @@ namespace NetflixShakti
 
             using (var writer = new StreamWriter(webRequest.GetRequestStream()))
             {
-                var json = ApiVars.SearchJson.Replace("{SEARCH QUERY}", search);
+                var json = JsonConvert.SerializeObject(sRequest);
                 writer.Write(json);
                 writer.Flush();
             }
@@ -245,8 +247,56 @@ namespace NetflixShakti
 
             return result;
         }
+        
+        #endregion
 
-        private static Task<Netflix> Login(string email,string password)
+        #region Static Functions
+        public static Netflix BuildFromSource(CookieContainer cookies,string source)
+        {
+            string id = GetIdFromSource(source);
+            //string lolomo = GetLolomoFromSource(source);
+
+            Netflix netflix = new Netflix(cookies,id);
+            return netflix;
+        }
+
+        public static string GetLolomoFromSource(string source)
+        {
+            string finder = "\"billboards\":{\"";
+            int startIndex = source.LastIndexOf(finder) + finder.Length;
+
+            string ender = "\":{\"data\":";
+            int endIndex = source.IndexOf(ender, startIndex);
+
+            int lenght = endIndex - startIndex;
+            string lolomo = source.Substring(startIndex, lenght).Split('_')[0];
+
+            return lolomo;
+        }
+
+        public static string GetIdFromSource(string browserSource)
+        {
+            int StartIndex = browserSource.LastIndexOf("\"BUILD_IDENTIFIER\":\"") + "\"BUILD_IDENTIFIER\":\"".Length;
+            return browserSource.Substring(StartIndex, 8);
+        }
+
+        public static CookieContainer BuildCoockieContainer(string cookies)
+        {
+            CookieContainer cookieJar = new CookieContainer();
+
+            foreach (string cookie in cookies.Split(';'))
+            {
+                string name = cookie.Split('=')[0];
+                string value = cookie.Substring(name.Length + 1);
+                string path = "/";
+                string domain = ".netflix.com";
+                cookieJar.Add(new Cookie(name.Trim(), value.Trim(), path, domain));
+            }
+
+            return cookieJar;
+        }
+
+        private static Task<Netflix> Login(string email, string password)
         {
             return Task.Run(() => LoginTask(email, password));
         }
@@ -297,54 +347,6 @@ namespace NetflixShakti
             }
 
             return netflix;
-        }
-
-        #endregion
-
-        #region Static Functions
-        public static Netflix BuildFromSource(CookieContainer cookies,string source)
-        {
-            string id = GetIdFromSource(source);
-            //string lolomo = GetLolomoFromSource(source);
-
-            Netflix netflix = new Netflix(cookies,id);
-            return netflix;
-        }
-
-        public static string GetLolomoFromSource(string source)
-        {
-            string finder = "\"billboards\":{\"";
-            int startIndex = source.LastIndexOf(finder) + finder.Length;
-
-            string ender = "\":{\"data\":";
-            int endIndex = source.IndexOf(ender, startIndex);
-
-            int lenght = endIndex - startIndex;
-            string lolomo = source.Substring(startIndex, lenght).Split('_')[0];
-
-            return lolomo;
-        }
-
-        public static string GetIdFromSource(string browserSource)
-        {
-            int StartIndex = browserSource.LastIndexOf("\"BUILD_IDENTIFIER\":\"") + "\"BUILD_IDENTIFIER\":\"".Length;
-            return browserSource.Substring(StartIndex, 8);
-        }
-
-        public static CookieContainer BuildCoockieContainer(string cookies)
-        {
-            CookieContainer cookieJar = new CookieContainer();
-
-            foreach (string cookie in cookies.Split(';'))
-            {
-                string name = cookie.Split('=')[0];
-                string value = cookie.Substring(name.Length + 1);
-                string path = "/";
-                string domain = ".netflix.com";
-                cookieJar.Add(new Cookie(name.Trim(), value.Trim(), path, domain));
-            }
-
-            return cookieJar;
         }
         #endregion
 

@@ -46,12 +46,15 @@
   <ItemGroup>
     <Compile Include="ApiVars.cs" />
     <Compile Include="HttpUtility.cs" />
+    <Compile Include="Json\Genre.cs" />
     <Compile Include="Json\JsonUtilities.cs" />
     <Compile Include="Json\Lists.cs" />
+    <Compile Include="Json\Movie.cs" />
     <Compile Include="Json\Person.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Json\Histroy.cs" />
     <Compile Include="Json\Profiles.cs" />
+    <Compile Include="MovieInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Json\SearchResult.cs" />
     <Compile Include="Json\Video.cs" />
