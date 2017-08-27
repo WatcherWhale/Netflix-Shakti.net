@@ -14,6 +14,7 @@ using NetflixShakti.Json.Lists;
 using NetflixShakti.Json.Search;
 using NetflixShakti.Json;
 using System.Collections.Specialized;
+using System.ComponentModel;
 
 namespace NetflixShakti
 {
@@ -21,12 +22,13 @@ namespace NetflixShakti
     {
         private CookieContainer _cookieJar;
         public string Id { get; set; }
-        [Obsolete("Is not working at the moment")]
-        public string LolomoId { get; set; }
+        
+        private string LolomoId { get; set; }
 
         public ProfileContainer Profiles { get; set; }
 
-        private Netflix(CookieContainer cookies, string id)
+        [Description("Netflix constructor needs a cookie container and a user id that can be obtained from the source.")]
+        public Netflix(CookieContainer cookies, string id)
         {
             _cookieJar = cookies;
             Id = id;
@@ -45,6 +47,7 @@ namespace NetflixShakti
         }
 
         #region Tasks
+        [Description("Get the whole viewing history of the currently active profile.")]
         public Task<List<ViewHistory>> GetViewHistory()
         {
             return Task.Run(() => GetViewHistoryTask());
@@ -90,6 +93,7 @@ namespace NetflixShakti
             }
         }
 
+        [Description("Converts the ViewHistory pages list to a single object")]
         public Task<ViewHistory> GetViewHistoryFromPages(List<ViewHistory> pages)
         {
             return Task.Run(() => GetViewHistoryFromPagesTask(pages));
@@ -116,6 +120,7 @@ namespace NetflixShakti
             return vh;
         }
 
+        [Description("Get a timespan of how long the currently active profile has watched.")]
         public Task<TimeSpan> GetTotalWatchTime()
         {
             return Task.Run(() => GetTotalWatchTimeTask());
@@ -135,6 +140,7 @@ namespace NetflixShakti
             return TimeSpan.FromSeconds(totalTime);
         }
 
+        [Description("(Re)loads the netflix profiles associated with the current account.")]
         public Task LoadNetflixProfiles()
         {
             return Task.Run(() => LoadNetflixProfilesTask());
@@ -159,6 +165,7 @@ namespace NetflixShakti
             }
         }
 
+        [Description("Switches the active profile.")]
         public Task SwitchProfile(Profile prof)
         {
             return Task.Run(() => SwitchProfileTask(prof));
@@ -184,6 +191,7 @@ namespace NetflixShakti
             LoadNetflixProfilesTask();
         }
 
+        [Description("Gets a list of list of movies that loads on the netflix homepage.")]
         public Task<Lister> GetHomePageList()
         {
             return Task.Run(() => GetHomePageListTask());
@@ -209,11 +217,13 @@ namespace NetflixShakti
             return lister;
         }
 
+        [Description("Search on a advanced way to video/person information.")]
         public Task<SearchResult> Search(Search.SearchRequest request)
         {
             return Task.Run(() => SearchTask(request));
         }
 
+        [Description("Use preprepared search queries for faster searching and a bit less of a headache.")]
         public Task<SearchResult> Search(Search.SimpleSearch request)
         {
             return Task.Run(() => SearchTask(request));
@@ -288,6 +298,7 @@ namespace NetflixShakti
         #endregion
 
         #region Static Functions
+        [Description("Builds the netflix class from a browser source and cookies.")]
         public static Netflix BuildFromSource(CookieContainer cookies,string source)
         {
             string id = GetIdFromSource(source);
@@ -297,7 +308,7 @@ namespace NetflixShakti
             return netflix;
         }
 
-        public static string GetLolomoFromSource(string source)
+        private static string GetLolomoFromSource(string source)
         {
             string finder = "\"billboards\":{\"";
             int startIndex = source.LastIndexOf(finder) + finder.Length;
@@ -311,12 +322,14 @@ namespace NetflixShakti
             return lolomo;
         }
 
+        [Description("Gets the user id from the browser source.")]
         public static string GetIdFromSource(string browserSource)
         {
             int StartIndex = browserSource.LastIndexOf("\"BUILD_IDENTIFIER\":\"") + "\"BUILD_IDENTIFIER\":\"".Length;
             return browserSource.Substring(StartIndex, 8);
         }
 
+        [Description("Builds a cookiecontainer from a cookie string.")]
         public static CookieContainer BuildCoockieContainer(string cookies)
         {
             CookieContainer cookieJar = new CookieContainer();
