@@ -3,7 +3,7 @@ An unofficial .net wrapper for the not so public Netflix Shakti API.
 It uses asynchronous methods to obtain information from the Shakti api.
 
 ## Usage
-**For more info go to the wiki pages**
+**For more info go to the [wiki](https://github.com/WatcherWhale/Netflix-Shakti.net/wiki) pages**
 
 **Download from NuGet**
 ```nuget
