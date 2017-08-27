@@ -12,6 +12,7 @@ using System.Windows.Forms;
 using NetflixShakti;
 using NetflixShakti.Json.History;
 using NetflixShakti.Json.Profiles;
+using NetflixShakti.Search;
 
 namespace NetflixShaktiExample
 {
@@ -26,7 +27,6 @@ namespace NetflixShaktiExample
 
         private void webBrowser1_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
         {
-            return;
             if (webBrowser1.Url.AbsolutePath == "/browse")
             {
                 // '/browse' path means that the user is logged in
@@ -117,12 +117,23 @@ namespace NetflixShaktiExample
         private async void button1_Click(object sender, EventArgs e)
         {
             listBox1.Items.Clear();
-            var output = await _netflix.Search(textBox2.Text);
-            
-            foreach (var video in output.value.videos.Values)
+
+            SearchRequest request = new SearchRequest();
+            //Ask for a title
+            request.AddSelectionRequest(SearchType.Search, new SearchName(textBox2.Text), "titles", 0, 20, false, "title");
+            //Ask for a small description of the show/movie
+            //request.AddStringVar(SearchType.Search, new SearchName(textBox2.Text), "synopsis");
+            //Ask for the Cast, Directors & Creators of the movei/show
+            //request.AddMultipleSelectionRequest(SearchType.Search, new SearchName(textBox2.Text), 
+            //    new string[] { "cast", "creators", "directors" }, 0, 4, false, "id", "name");
+
+            var output = await _netflix.Search(request);
+
+            foreach (var video in output.value.videos)
             {
-                listBox1.Items.Add(video.title);
+                listBox1.Items.Add(video.Value.title);
             }
+
         }
 
         private async void button2_Click(object sender, EventArgs e)

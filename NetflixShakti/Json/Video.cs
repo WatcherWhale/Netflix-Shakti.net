@@ -12,6 +12,10 @@ namespace NetflixShakti.Json.Videos
         public string title;
         public VideoSummary summary;
         public Boxarts boxarts;
+
+        public bool hasSensitiveMetadata;
+        public string regularSynopsis;
+        public string synopsis;
     }
 
     public class VideoSummary

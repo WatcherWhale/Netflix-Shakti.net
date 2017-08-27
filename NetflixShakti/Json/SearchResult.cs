@@ -13,12 +13,18 @@ namespace NetflixShakti.Json.Search
     public class SearchResult
     {
         public SearchValue value;
+        public Dictionary<string, SearchResponse> search;
     }
 
     public class SearchValue
     {
-        public IDictionary<string,Movies.Movie> videos;
+        public IDictionary<string,Video> videos;
         [JsonProperty(PropertyName = "person")]
         public IDictionary<string, Person> persons;
+    }
+
+    public class SearchResponse
+    {
+        public List<string[]> titles;
     }
 }
