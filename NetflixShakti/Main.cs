@@ -214,6 +214,11 @@ namespace NetflixShakti
             return Task.Run(() => SearchTask(request));
         }
 
+        public Task<SearchResult> Search(Search.SimpleSearch request)
+        {
+            return Task.Run(() => SearchTask(request));
+        }
+
         private SearchResult SearchTask(Search.SearchRequest searchRequest)
         {
             var sRequest = searchRequest.Build();
@@ -247,7 +252,39 @@ namespace NetflixShakti
 
             return result;
         }
-        
+
+        private SearchResult SearchTask(Search.SimpleSearch searchRequest)
+        {
+            WebRequest request = WebRequest.Create(ApiVars.baseAPIUrl + Id + "/pathEvaluator?withSize=true&materialize=true&searchAPIV2=false");
+            HttpWebRequest webRequest = request as HttpWebRequest;
+            webRequest.CookieContainer = _cookieJar;
+
+            webRequest.Method = "POST";
+            webRequest.ContentType = "application/json";
+
+            using (var writer = new StreamWriter(webRequest.GetRequestStream()))
+            {
+                var json = searchRequest.Json;
+                writer.Write(json);
+                writer.Flush();
+            }
+
+            SearchResult result;
+            using (HttpWebResponse res = (HttpWebResponse)webRequest.GetResponse())
+            using (Stream stream = res.GetResponseStream())
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                string json = reader.ReadToEnd();
+
+                json = JsonUtilities.RemoveProperties(json, "$size");
+                json = JsonUtilities.RemoveProperties(json, "size");
+
+                result = JsonConvert.DeserializeObject<SearchResult>(json);
+            }
+
+            return result;
+        }
+
         #endregion
 
         #region Static Functions

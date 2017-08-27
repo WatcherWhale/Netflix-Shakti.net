@@ -116,18 +116,9 @@ namespace NetflixShaktiExample
 
         private async void button1_Click(object sender, EventArgs e)
         {
-            listBox1.Items.Clear();
+            listBox1.Items.Clear();            
 
-            SearchRequest request = new SearchRequest();
-            //Ask for a title
-            request.AddSelectionRequest(SearchType.Search, new SearchName(textBox2.Text), "titles", 0, 20, false, "title");
-            //Ask for a small description of the show/movie
-            //request.AddStringVar(SearchType.Search, new SearchName(textBox2.Text), "synopsis");
-            //Ask for the Cast, Directors & Creators of the movei/show
-            //request.AddMultipleSelectionRequest(SearchType.Search, new SearchName(textBox2.Text), 
-            //    new string[] { "cast", "creators", "directors" }, 0, 4, false, "id", "name");
-
-            var output = await _netflix.Search(request);
+            var output = await _netflix.Search(SearchRequest.GetSimpleVideoSearch(textBox2.Text));
 
             foreach (var video in output.value.videos)
             {

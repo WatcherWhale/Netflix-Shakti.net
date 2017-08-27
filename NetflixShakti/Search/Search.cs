@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +13,8 @@ namespace NetflixShakti.Search
         private List<ImageVar> imageVars = new List<ImageVar>();
         private List<SelectionVar> selectionVars = new List<SelectionVar>();
         private List<MultipleSelectionVar> multipleSelectionVars = new List<MultipleSelectionVar>();
+
+        #region AddVars
 
         public void AddStringVar(SearchType type, SearchName id, string varName, bool summary = false)
         {
@@ -75,6 +78,8 @@ namespace NetflixShakti.Search
             multipleSelectionVars.Add(var);
         }
 
+        #endregion
+
         internal Json.Search.SearchRequest Build()
         {
             var request = new Json.Search.SearchRequest();
@@ -129,9 +134,32 @@ namespace NetflixShakti.Search
 
             return request;
         }
-    } 
+
+        #region Simple Search
+
+        public static SimpleSearch GetSimpleVideoSearch(string video)
+        {
+            SimpleSearch search = new SimpleSearch()
+            {
+                Json = ApiVars.SearchJson.Replace("{SEARCH QUERY}", video)
+            };
+            return search;
+        }
+
+        public static SimpleSearch GetSimpleVideoInfo(int video)
+        {
+            SimpleSearch search = new SimpleSearch()
+            {
+                Json = ApiVars.VideoInfoJson.Replace("{MOVIE ID}", video.ToString())
+            };
+            return search;
+        }
+        #endregion
+    }
 
     public enum SearchType { Search,Videos,Person};
+
+    #region VarClasses
 
     public class StringVar
     {
@@ -183,6 +211,13 @@ namespace NetflixShakti.Search
         {
             NAME = name;
         }
+    }
+
+    #endregion
+
+    public class SimpleSearch
+    {
+        internal string Json { get; set; }
     }
 }
 
