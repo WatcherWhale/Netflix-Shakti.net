@@ -93,7 +93,7 @@ namespace NetflixShakti
             }
         }
 
-        [Description("Converts the ViewHistory pages list to a single object")]
+        [Description("Converts the ViewHistory pages list to a single object.")]
         public Task<ViewHistory> GetViewHistoryFromPages(List<ViewHistory> pages)
         {
             return Task.Run(() => GetViewHistoryFromPagesTask(pages));
