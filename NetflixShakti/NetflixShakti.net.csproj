@@ -58,6 +58,7 @@
     <Compile Include="Json\SearchResult.cs" />
     <Compile Include="Json\Video.cs" />
     <Compile Include="Search\Search.cs" />
+    <Compile Include="WebRequester.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

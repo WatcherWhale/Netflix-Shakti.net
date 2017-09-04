@@ -48,9 +48,10 @@
             this.textBox2 = new System.Windows.Forms.TextBox();
             this.button1 = new System.Windows.Forms.Button();
             this.tabPage4 = new System.Windows.Forms.TabPage();
-            this.button2 = new System.Windows.Forms.Button();
-            this.emailBox = new System.Windows.Forms.TextBox();
             this.passwordBox = new System.Windows.Forms.TextBox();
+            this.emailBox = new System.Windows.Forms.TextBox();
+            this.button2 = new System.Windows.Forms.Button();
+            this.button3 = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -190,6 +191,7 @@
             // 
             // tabPage3
             // 
+            this.tabPage3.Controls.Add(this.button3);
             this.tabPage3.Controls.Add(this.listBox1);
             this.tabPage3.Controls.Add(this.textBox2);
             this.tabPage3.Controls.Add(this.button1);
@@ -206,19 +208,19 @@
             this.listBox1.FormattingEnabled = true;
             this.listBox1.Location = new System.Drawing.Point(8, 6);
             this.listBox1.Name = "listBox1";
-            this.listBox1.Size = new System.Drawing.Size(666, 264);
+            this.listBox1.Size = new System.Drawing.Size(678, 459);
             this.listBox1.TabIndex = 3;
             // 
             // textBox2
             // 
-            this.textBox2.Location = new System.Drawing.Point(8, 285);
+            this.textBox2.Location = new System.Drawing.Point(8, 506);
             this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(532, 20);
+            this.textBox2.Size = new System.Drawing.Size(555, 20);
             this.textBox2.TabIndex = 2;
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(557, 283);
+            this.button1.Location = new System.Drawing.Point(569, 503);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(117, 23);
             this.button1.TabIndex = 1;
@@ -239,15 +241,13 @@
             this.tabPage4.Text = "Login";
             this.tabPage4.UseVisualStyleBackColor = true;
             // 
-            // button2
+            // passwordBox
             // 
-            this.button2.Location = new System.Drawing.Point(127, 58);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(75, 23);
-            this.button2.TabIndex = 0;
-            this.button2.Text = "Login";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
+            this.passwordBox.Location = new System.Drawing.Point(8, 32);
+            this.passwordBox.Name = "passwordBox";
+            this.passwordBox.Size = new System.Drawing.Size(194, 20);
+            this.passwordBox.TabIndex = 2;
+            this.passwordBox.UseSystemPasswordChar = true;
             // 
             // emailBox
             // 
@@ -256,13 +256,24 @@
             this.emailBox.Size = new System.Drawing.Size(194, 20);
             this.emailBox.TabIndex = 1;
             // 
-            // passwordBox
+            // button2
             // 
-            this.passwordBox.Location = new System.Drawing.Point(8, 32);
-            this.passwordBox.Name = "passwordBox";
-            this.passwordBox.Size = new System.Drawing.Size(194, 20);
-            this.passwordBox.TabIndex = 2;
-            this.passwordBox.UseSystemPasswordChar = true;
+            this.button2.Location = new System.Drawing.Point(127, 58);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(75, 23);
+            this.button2.TabIndex = 0;
+            this.button2.Text = "Login";
+            this.button2.UseVisualStyleBackColor = true;
+            // 
+            // button3
+            // 
+            this.button3.Location = new System.Drawing.Point(569, 471);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(117, 23);
+            this.button3.TabIndex = 4;
+            this.button3.Text = "Doctor Who Info";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
             // Form1
             // 
@@ -314,6 +325,7 @@
         private System.Windows.Forms.TextBox passwordBox;
         private System.Windows.Forms.TextBox emailBox;
         private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button button3;
     }
 }
 

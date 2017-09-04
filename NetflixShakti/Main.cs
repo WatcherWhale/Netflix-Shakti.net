@@ -231,7 +231,7 @@ namespace NetflixShakti
 
         private SearchResult SearchTask(Search.SearchRequest searchRequest)
         {
-            var sRequest = searchRequest.Build();
+            var sRequest = searchRequest.request;
 
             WebRequest request = WebRequest.Create(ApiVars.baseAPIUrl + Id + "/pathEvaluator?withSize=true&materialize=true&searchAPIV2=false");
             HttpWebRequest webRequest = request as HttpWebRequest;

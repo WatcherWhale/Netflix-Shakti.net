@@ -128,9 +128,27 @@ namespace NetflixShaktiExample
 
         }
 
-        private async void button2_Click(object sender, EventArgs e)
+        private async void button3_Click(object sender, EventArgs e)
         {
-            //_netflix = await Netflix.Login(emailBox.Text, passwordBox.Text);
+            SearchRequest request = new SearchRequest();
+            request.AddMultiStringVar(SearchType.Videos, new SearchName(70142441),
+                new string[] { "regularSynopsis", "evidence" },false);
+            request.AddSelectionVar(SearchType.Videos, new SearchName(70142441),
+                "genres",0,2,false,"id","name");
+            request.AddMultiSelectionVar(SearchType.Videos, new SearchName(70142441),
+                new string[] { "cast","directors","creators"}, 0, 4, false, "id", "name");
+
+            var response = await _netflix.Search(request);
+
+            foreach (var video in response.value.videos)
+            {
+                listBox1.Items.Add(video.Value.regularSynopsis);
+            }
+
+            foreach(var person in response.value.persons.Values)
+            {
+                listBox1.Items.Add(person.name);
+            }
         }
     }
 }
