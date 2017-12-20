@@ -5,16 +5,17 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections.Specialized;
+using System.ComponentModel;
 
 using Newtonsoft.Json;
 
+using NetflixShakti.Json;
 using NetflixShakti.Json.History;
 using NetflixShakti.Json.Profiles;
 using NetflixShakti.Json.Lists;
 using NetflixShakti.Json.Search;
-using NetflixShakti.Json;
-using System.Collections.Specialized;
-using System.ComponentModel;
+using NetflixShakti.Json.RatingHistory;
 
 namespace NetflixShakti
 {
@@ -48,12 +49,12 @@ namespace NetflixShakti
 
         #region Tasks
         [Description("Get the whole viewing history of the currently active profile.")]
-        public Task<List<ViewHistory>> GetViewHistory()
+        public Task<ViewHistory> GetViewHistory()
         {
             return Task.Run(() => GetViewHistoryTask());
         }
 
-        private List<ViewHistory> GetViewHistoryTask()
+        private ViewHistory GetViewHistoryTask()
         {
             try
             {
@@ -62,29 +63,21 @@ namespace NetflixShakti
 
                 while (loading)
                 {
-                    WebRequest request = WebRequest.Create(ApiVars.baseAPIUrl + Id + "/viewingactivity?pg=" + pages.Count);
-                    HttpWebRequest webRequest = request as HttpWebRequest;
-                    webRequest.CookieContainer = _cookieJar;
+                    var res = WebRequester.DoRequest(ApiVars.baseAPIUrl + Id + "/viewingactivity?pg=" + pages.Count, _cookieJar);
 
-                    using (var res = webRequest.GetResponse())
-                    using (var resStream = res.GetResponseStream())
-                    using (var reader = new StreamReader(resStream))
+                    var page = res.DeserializeResponse<ViewHistory>();
+
+                    if (page.viewedItems.Count == 0)
                     {
-                        string json = reader.ReadToEnd();
-                        var page = JsonConvert.DeserializeObject<ViewHistory>(json);
-
-                        if (page.viewedItems.Count == 0)
-                        {
-                            loading = false;
-                        }
-                        else
-                        {
-                            pages.Add(page);
-                        }
+                        loading = false;
+                    }
+                    else
+                    {
+                        pages.Add(page);
                     }
                 }
 
-                return pages;
+                return GetViewHistoryFromPages(pages);
             }
             catch (Exception ex)
             {
@@ -93,13 +86,7 @@ namespace NetflixShakti
             }
         }
 
-        [Description("Converts the ViewHistory pages list to a single object.")]
-        public Task<ViewHistory> GetViewHistoryFromPages(List<ViewHistory> pages)
-        {
-            return Task.Run(() => GetViewHistoryFromPagesTask(pages));
-        }
-
-        private ViewHistory GetViewHistoryFromPagesTask(List<ViewHistory> pages)
+        private ViewHistory GetViewHistoryFromPages(List<ViewHistory> pages)
         {
             ViewHistory vh = new ViewHistory()
             {
@@ -117,7 +104,51 @@ namespace NetflixShakti
 
             vh.size = vh.viewedItems.Count;
 
+            vh.totalWatchTime = GetTotalWatchTimeTask(vh);
+
             return vh;
+        }
+
+        public Task GetRatingHistory()
+        {
+            return Task.Run(() => GetRatingHistoryTask());
+        }
+
+        public RatingList GetRatingHistoryTask()
+        {
+            List<RatingList> pages = new List<RatingList>();
+            bool loading = true;
+
+            while(loading)
+            {
+                var res = WebRequester.DoRequest(ApiVars.baseAPIUrl + Id + "/ratinghistory?pg=" + pages.Count,_cookieJar);
+                var page = res.DeserializeResponse<RatingList>();
+
+                if (page.ratingItems.Count == 0)
+                {
+                    loading = false;
+                }
+                else
+                {
+                    pages.Add(page);
+                }
+            }
+
+            RatingList list = new RatingList();
+
+            foreach (RatingList page in pages)
+            {
+                foreach (Rating rat in page.ratingItems)
+                {
+                    list.ratingItems.Add(rat);
+                }
+            }
+
+            list.totalRatings = list.ratingItems.Count;
+            list.size = list.totalRatings;
+            list.page = 0;
+
+            return list;
         }
 
         [Description("Get a timespan of how long the currently active profile has watched.")]
@@ -128,9 +159,25 @@ namespace NetflixShakti
 
         private TimeSpan GetTotalWatchTimeTask()
         {
-            var pages = GetViewHistoryTask();
-            var history = GetViewHistoryFromPagesTask(pages);
+            var history = GetViewHistoryTask();
 
+            double totalTime = 0;
+            foreach (var item in history.viewedItems)
+            {
+                totalTime += item.duration;
+            }
+
+            return TimeSpan.FromSeconds(totalTime);
+        }
+
+        [Description("Get a timespan of how long the currently active profile has watched.")]
+        public Task<TimeSpan> GetTotalWatchTime(ViewHistory history)
+        {
+            return Task.Run(() => GetTotalWatchTimeTask(history));
+        }
+
+        private TimeSpan GetTotalWatchTimeTask(ViewHistory history)
+        {
             double totalTime = 0;
             foreach (var item in history.viewedItems)
             {

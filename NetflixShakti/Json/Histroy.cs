@@ -9,8 +9,10 @@ namespace NetflixShakti.Json.History
 {
     public class ViewHistory
     {
-        public int page;
+        internal int page;
         public int size;
+
+        public TimeSpan totalWatchTime;
 
         public List<ViewItem> viewedItems;
     }
@@ -20,7 +22,27 @@ namespace NetflixShakti.Json.History
         public string title;
         public string country;
         public string dateStr;
-        public string estRating;
+        public string estRating
+        {
+            get
+            {
+                return estratingstr;
+            }
+            set
+            {
+                estratingstr = value;
+
+                if (double.TryParse(value, out rating))
+                {
+                    ratingPercentage = rating / 50;
+                }
+            }
+        }
+
+        private string estratingstr;
+        public double rating;
+        public double ratingPercentage;
+
 
         public string seriesTitle;
         public int series;

@@ -50,6 +50,7 @@
     <Compile Include="Json\JsonUtilities.cs" />
     <Compile Include="Json\Lists.cs" />
     <Compile Include="Json\Person.cs" />
+    <Compile Include="Json\Ratings.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Json\Histroy.cs" />
     <Compile Include="Json\Profiles.cs" />

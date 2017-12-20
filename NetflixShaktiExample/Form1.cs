@@ -80,15 +80,17 @@ namespace NetflixShaktiExample
         {
             Invoke(new MethodInvoker(delegate { dataGridView1.Rows.Clear(); }));
 
-            var pages = await _netflix.GetViewHistory();
-            var history = await _netflix.GetViewHistoryFromPages(pages);
+            var history = await _netflix.GetViewHistory();
+
+            TimeSpan duration = history.totalWatchTime;
+            watchTime.Text = "Total Watch Time: " + duration.Days + " days " + duration.Hours + " hours " + duration.Minutes + " Minutes " + duration.Seconds + " Secconds";
 
             foreach (ViewItem vi in history.viewedItems)
             {
                 string title = vi.title;
                 if (vi.seriesTitle != "" && vi.seriesTitle != null) title = vi.seriesTitle + ": " + title;
 
-                string rating = vi.estRating == null ? "/" : (double.Parse(vi.estRating) / 10).ToString();
+                string rating = vi.estRating == null ? "/" : (vi.ratingPercentage * 10).ToString() + "/10";
 
                 var ts = TimeSpan.FromSeconds(vi.duration);
                 string dur = ts.Hours > 0 ? ts.Hours + "h " + ts.Minutes + "m" : ts.Minutes + "m";
@@ -96,9 +98,6 @@ namespace NetflixShaktiExample
                 object[] row = new object[] { vi.dateStr, title, dur, rating };
                 Invoke(new MethodInvoker(delegate { dataGridView1.Rows.Add(row); }));
             }
-
-            TimeSpan duration = await _netflix.GetTotalWatchTime();
-            watchTime.Text = "Total Watch Time: " + duration.Days + " days " + duration.Hours + " hours " + duration.Minutes + " Minutes " + duration.Seconds + " Secconds";
         }
 
         private async void DropItem_Click(object sender, EventArgs e)
