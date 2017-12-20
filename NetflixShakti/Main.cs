@@ -109,7 +109,8 @@ namespace NetflixShakti
             return vh;
         }
 
-        public Task GetRatingHistory()
+        [Description("Get the whole rating history of the currently active profile.")]
+        public Task<RatingList> GetRatingHistory()
         {
             return Task.Run(() => GetRatingHistoryTask());
         }
@@ -195,21 +196,8 @@ namespace NetflixShakti
 
         private void LoadNetflixProfilesTask()
         {
-            WebRequest request = WebRequest.Create(ApiVars.baseAPIUrl + Id + "/profiles");
-            HttpWebRequest webRequest = request as HttpWebRequest;
-            webRequest.CookieContainer = _cookieJar;
-
-            using (var res = webRequest.GetResponse())
-            {
-                using (Stream resStream = res.GetResponseStream())
-                {
-                    using (StreamReader read = new StreamReader(resStream))
-                    {
-                        string json = read.ReadToEnd();
-                        Profiles = JsonConvert.DeserializeObject<ProfileContainer>(json);
-                    }
-                }
-            }
+            var res = WebRequester.DoRequest(ApiVars.baseAPIUrl + Id + "/profiles",_cookieJar);
+            Profiles = res.DeserializeResponse<ProfileContainer>();
         }
 
         [Description("Switches the active profile.")]
@@ -220,20 +208,15 @@ namespace NetflixShakti
 
         private void SwitchProfileTask(Profile prof)
         {
-            WebRequest request = WebRequest.Create(ApiVars.baseAPIUrl + Id + "/profiles/switch?switchProfileGuid=" + prof.guid);
-            HttpWebRequest webRequest = request as HttpWebRequest;
-            webRequest.CookieContainer = _cookieJar;
+            var res = WebRequester.DoRequest(ApiVars.baseAPIUrl + Id + "/profiles/switch?switchProfileGuid=" + prof.guid, _cookieJar);
 
-            using (HttpWebResponse res = (HttpWebResponse)webRequest.GetResponse())
+            CookieContainer cc = new CookieContainer();
+            foreach (Cookie cookie in res.Cookies)
             {
-                CookieContainer cc = new CookieContainer();
-                foreach (Cookie cookie in res.Cookies)
-                {
-                    cc.Add(cookie);
-                }
-
-                _cookieJar = cc;
+                cc.Add(cookie);
             }
+
+            _cookieJar = cc;
 
             LoadNetflixProfilesTask();
         }
