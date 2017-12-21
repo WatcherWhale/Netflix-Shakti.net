@@ -30,7 +30,8 @@ namespace NetflixShakti
         public ProfileContainer Profiles { get; set; }
 
         [Description("Netflix constructor needs a cookie container and a user id that can be obtained from the source.")]
-        public Netflix(CookieContainer cookies, string id)
+        public Netflix([Description("A Cookiecontainer with cookies stored from Netflix.")]CookieContainer cookies, 
+            [Description("Your Build Identifier you can obtain from source.")]string id)
         {
             _cookieJar = cookies;
             Id = id;
@@ -39,7 +40,8 @@ namespace NetflixShakti
         }
 
         [Obsolete("Use Netflix.BuildFromSource instead")]
-        public Netflix(string cookies,string id)
+        public Netflix([Description("A string with cookies stored from Netflix.")]string cookies,
+            [Description("Your Build Identifier you can obtain from source.")]string id)
         {
             _cookieJar = BuildCoockieContainer(cookies);
             Id = id;
@@ -310,14 +312,17 @@ namespace NetflixShakti
             return cookieJar;
         }
 
-        public static Task<Netflix> Login(string email, string password)
+        [Description("Login into a Netflix account")]
+        public static Task<Netflix> Login([Description("Email of a Netflix account")] string email, [Description("Password of this Netflix account")] string password)
         {
+            //Create a forms WebBrowser in main thread
             System.Windows.Forms.WebBrowser browser = new System.Windows.Forms.WebBrowser
             {
                 ScriptErrorsSuppressed = true,
                 Visible = false
             };
 
+            //Run Task
             return Task.Run(() => LoginTask(email, password,browser));
         }
 
@@ -326,32 +331,44 @@ namespace NetflixShakti
             bool wait = true;
             Netflix netflix = null;
 
+            //Navigate browser to the login page of Netflix
             browser.Navigate(ApiVars.netflixUrl + "/login");
+
+            //Document completed event
             browser.DocumentCompleted += (object sender, System.Windows.Forms.WebBrowserDocumentCompletedEventArgs e) => 
             {
+                //When browser is navigated to 'login' page
                 if(browser.Url.AbsolutePath == "/login")
                 {
+                    //Fill in the form
                     browser.Document.GetElementById("email").InnerText = email;
                     browser.Document.GetElementById("password").InnerText = password;
 
+                    //Find the submit button
                     foreach (System.Windows.Forms.HtmlElement btn in browser.Document.GetElementsByTagName("button"))
                     {
                         if(btn.GetAttribute("class").Contains("login-button"))
                         {
+                            //Click the button
                             btn.InvokeMember("click");
+                            break;
                         }
                     }
                 }
-                else if(browser.Url.AbsolutePath == "/browse")
-                { 
+                //When browser is navigated to the 'browse' page
+                else if (browser.Url.AbsolutePath == "/browse")
+                {
+                    //Build netflix class from broser source
                     netflix = Netflix.BuildFromSource(Netflix.BuildCoockieContainer(browser.Document.Cookie), browser.DocumentText);
+
+                    //Stop waiting to finish
                     wait = false;
                 }
             };
 
             while(wait)
             {
-                //Wait for it ~ Barney Stinson
+
             }
 
             return netflix;
