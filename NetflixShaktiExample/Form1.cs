@@ -27,11 +27,20 @@ namespace NetflixShaktiExample
 
         private async void Login(string username, string password)
         {
-                _netflix = await Netflix.Login(username, password);
+            _netflix = await Netflix.Login(username, password);
+            if (_netflix != null)
+            {
                 label3.Text = "Logged in";
                 label3.ForeColor = Color.Green;
-                
+
                 SetupNetflix(_netflix);
+                Console.WriteLine("ss");
+            }
+            else
+            {
+                label3.Text = "Invalid credentials.";
+                label3.ForeColor = Color.Red;
+            }
         }
 
         private void webBrowser1_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)

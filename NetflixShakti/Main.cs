@@ -312,7 +312,7 @@ namespace NetflixShakti
             return cookieJar;
         }
 
-        [Description("Login into a Netflix account")]
+        [Description("Login into a Netflix account. Returns null when invalid credentials are put in.")]
         public static Task<Netflix> Login([Description("Email of a Netflix account")] string email, [Description("Password of this Netflix account")] string password)
         {
             //Create a forms WebBrowser in main thread
@@ -328,6 +328,7 @@ namespace NetflixShakti
 
         public static Netflix LoginTask(string email, string password, System.Windows.Forms.WebBrowser browser)
         {
+            int loginTry = 0;
             bool wait = true;
             Netflix netflix = null;
 
@@ -335,24 +336,22 @@ namespace NetflixShakti
             browser.Navigate(ApiVars.netflixUrl + "/login");
 
             //Document completed event
-            browser.DocumentCompleted += (object sender, System.Windows.Forms.WebBrowserDocumentCompletedEventArgs e) => 
+            System.Windows.Forms.WebBrowserDocumentCompletedEventHandler handler = (sender, e) =>
             {
                 //When browser is navigated to 'login' page
-                if(browser.Url.AbsolutePath == "/login")
+                if (browser.Url.ToString().Contains("/login"))
                 {
                     //Fill in the form
                     browser.Document.GetElementById("email").InnerText = email;
                     browser.Document.GetElementById("password").InnerText = password;
+                    browser.Document.GetElementById("bxid_rememberMe_true").SetAttribute("value", "false");
 
                     //Find the submit button
                     foreach (System.Windows.Forms.HtmlElement btn in browser.Document.GetElementsByTagName("button"))
                     {
-                        if(btn.GetAttribute("class").Contains("login-button"))
-                        {
-                            //Click the button
-                            btn.InvokeMember("click");
-                            break;
-                        }
+                        //Click the button
+                        btn.InvokeMember("click");
+                        loginTry++;
                     }
                 }
                 //When browser is navigated to the 'browse' page
@@ -366,11 +365,19 @@ namespace NetflixShakti
                 }
             };
 
-            while(wait)
-            {
+            browser.DocumentCompleted += handler;
 
+            while (wait)
+            {
+                if(loginTry >= ApiVars.TryLoginMax * 2)
+                {
+                    browser.DocumentCompleted -= handler;
+                    return null;
+                }
             }
 
+            browser.DocumentCompleted -= handler;
+            browser.Dispose();
             return netflix;
         }
 
