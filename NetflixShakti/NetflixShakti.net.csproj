@@ -36,6 +36,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -58,7 +59,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Json\SearchResult.cs" />
     <Compile Include="Json\Video.cs" />
-    <Compile Include="Search\Search.cs" />
+    <Compile Include="Search\SearchParams.cs" />
+    <Compile Include="Search\SearchRequest.cs" />
     <Compile Include="WebRequester.cs" />
   </ItemGroup>
   <ItemGroup>

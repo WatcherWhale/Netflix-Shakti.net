@@ -25,9 +25,18 @@ namespace NetflixShaktiExample
             InitializeComponent();
         }
 
+        private async void Login(string username, string password)
+        {
+                _netflix = await Netflix.Login(username, password);
+                label3.Text = "Logged in";
+                label3.ForeColor = Color.Green;
+                
+                SetupNetflix(_netflix);
+        }
+
         private void webBrowser1_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
         {
-            if (webBrowser1.Url.AbsolutePath == "/browse")
+            /*if (webBrowser1.Url.AbsolutePath == "/browse")
             {
                 // '/browse' path means that the user is logged in
                 webBrowser1.DocumentCompleted -= webBrowser1_DocumentCompleted;
@@ -47,12 +56,11 @@ namespace NetflixShaktiExample
 
                     SetupNetflix(container, source);
                 });
-            }
+            }*/
         }
 
-        private async void SetupNetflix(CookieContainer container, string source)
+        private async void SetupNetflix(Netflix _netflix)
         {
-            _netflix = Netflix.BuildFromSource(container,source);
 
             var stream = await _netflix.Profiles.active.GetAvatarImageStream(AvatarSizes.Size64);
             profilesDropDown.Image = Image.FromStream(stream);
@@ -116,20 +124,20 @@ namespace NetflixShaktiExample
 
         private async void button1_Click(object sender, EventArgs e)
         {
-            listBox1.Items.Clear();            
+            /*listBox1.Items.Clear();            
 
             var output = await _netflix.Search(SearchRequest.GetSimpleVideoSearch(textBox2.Text));
 
             foreach (var video in output.value.videos)
             {
                 listBox1.Items.Add(video.Value.title);
-            }
+            }*/
 
         }
 
         private async void button3_Click(object sender, EventArgs e)
         {
-            SearchRequest request = new SearchRequest();
+            /*SearchRequest request = new SearchRequest();
             request.AddMultiStringVar(SearchType.Videos, new SearchName(70142441),
                 new string[] { "regularSynopsis", "evidence" },false);
             request.AddSelectionVar(SearchType.Videos, new SearchName(70142441),
@@ -147,7 +155,12 @@ namespace NetflixShaktiExample
             foreach(var person in response.value.persons.Values)
             {
                 listBox1.Items.Add(person.name);
-            }
+            }*/
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            Login(textBox1.Text, textBox3.Text);
         }
     }
 }

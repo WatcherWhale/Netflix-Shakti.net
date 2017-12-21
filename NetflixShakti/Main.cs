@@ -14,8 +14,9 @@ using NetflixShakti.Json;
 using NetflixShakti.Json.History;
 using NetflixShakti.Json.Profiles;
 using NetflixShakti.Json.Lists;
-using NetflixShakti.Json.Search;
 using NetflixShakti.Json.RatingHistory;
+
+using NetflixShakti.Search;
 
 namespace NetflixShakti
 {
@@ -247,82 +248,15 @@ namespace NetflixShakti
             return lister;
         }
 
-        [Description("Search on a advanced way to video/person information.")]
-        public Task<SearchResult> Search(Search.SearchRequest request)
+        public Task Search(ISearchRequest request)
         {
-            return Task.Run(() => SearchTask(request));
+            return new Task(() => SearchTask(request));
         }
 
-        [Description("Use preprepared search queries for faster searching and a bit less of a headache.")]
-        public Task<SearchResult> Search(Search.SimpleSearch request)
+        private void SearchTask(ISearchRequest request)
         {
-            return Task.Run(() => SearchTask(request));
-        }
-
-        private SearchResult SearchTask(Search.SearchRequest searchRequest)
-        {
-            var sRequest = searchRequest.request;
-
-            WebRequest request = WebRequest.Create(ApiVars.baseAPIUrl + Id + "/pathEvaluator?withSize=true&materialize=true&searchAPIV2=false");
-            HttpWebRequest webRequest = request as HttpWebRequest;
-            webRequest.CookieContainer = _cookieJar;
-
-            webRequest.Method = "POST";
-            webRequest.ContentType = "application/json";
-
-            using (var writer = new StreamWriter(webRequest.GetRequestStream()))
-            {
-                var json = JsonConvert.SerializeObject(sRequest);
-                writer.Write(json);
-                writer.Flush();
-            }
-
-            SearchResult result;
-            using (HttpWebResponse res = (HttpWebResponse)webRequest.GetResponse())
-            using (Stream stream = res.GetResponseStream())
-            using (StreamReader reader = new StreamReader(stream))
-            {
-                string json = reader.ReadToEnd();
-
-                json = JsonUtilities.RemoveProperties(json, "$size");
-                json = JsonUtilities.RemoveProperties(json, "size");
-
-                result = JsonConvert.DeserializeObject<SearchResult>(json);
-            }
-
-            return result;
-        }
-
-        private SearchResult SearchTask(Search.SimpleSearch searchRequest)
-        {
-            WebRequest request = WebRequest.Create(ApiVars.baseAPIUrl + Id + "/pathEvaluator?withSize=true&materialize=true&searchAPIV2=false");
-            HttpWebRequest webRequest = request as HttpWebRequest;
-            webRequest.CookieContainer = _cookieJar;
-
-            webRequest.Method = "POST";
-            webRequest.ContentType = "application/json";
-
-            using (var writer = new StreamWriter(webRequest.GetRequestStream()))
-            {
-                var json = searchRequest.Json;
-                writer.Write(json);
-                writer.Flush();
-            }
-
-            SearchResult result;
-            using (HttpWebResponse res = (HttpWebResponse)webRequest.GetResponse())
-            using (Stream stream = res.GetResponseStream())
-            using (StreamReader reader = new StreamReader(stream))
-            {
-                string json = reader.ReadToEnd();
-
-                json = JsonUtilities.RemoveProperties(json, "$size");
-                json = JsonUtilities.RemoveProperties(json, "size");
-
-                result = JsonConvert.DeserializeObject<SearchResult>(json);
-            }
-
-            return result;
+            var res = WebRequester.DoPostRequest(ApiVars.baseAPIUrl + Id + "/pathEvaluator?withSize=true&materialize=true&canWatchBranchingTitles=false&isWatchlistEnabled=false",
+                _cookieJar, "Accept: application/json, text/javascript, */*", request.Build());
         }
 
         #endregion
@@ -376,58 +310,53 @@ namespace NetflixShakti
             return cookieJar;
         }
 
-        private static Task<Netflix> Login(string email, string password)
+        public static Task<Netflix> Login(string email, string password)
         {
-            return Task.Run(() => LoginTask(email, password));
+            System.Windows.Forms.WebBrowser browser = new System.Windows.Forms.WebBrowser
+            {
+                ScriptErrorsSuppressed = true,
+                Visible = false
+            };
+
+            return Task.Run(() => LoginTask(email, password,browser));
         }
 
-        private static Netflix LoginTask(string email, string password)
+        public static Netflix LoginTask(string email, string password, System.Windows.Forms.WebBrowser browser)
         {
-            Netflix netflix;
+            bool wait = true;
+            Netflix netflix = null;
 
-            WebRequest request = WebRequest.Create(ApiVars.netflixUrl + "login");
-            HttpWebRequest webRequest = request as HttpWebRequest;
-
-            //Headers
-            webRequest.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-            webRequest.Method = "POST";
-            webRequest.ContentType = "application/x-www-form-urlencoded";
-            webRequest.CookieContainer = new CookieContainer();
-
-            NameValueCollection postQuery = new NameValueCollection();
-
-            postQuery.Add("email", email);
-            postQuery.Add("password", password);
-            postQuery.Add("action", "loginAction");
-            postQuery.Add("mode", "login");
-            postQuery.Add("rememberMe", "false");
-            postQuery.Add("flow", "websiteSignUp");
-
-            using (var writer = new StreamWriter(webRequest.GetRequestStream()))
+            browser.Navigate(ApiVars.netflixUrl + "/login");
+            browser.DocumentCompleted += (object sender, System.Windows.Forms.WebBrowserDocumentCompletedEventArgs e) => 
             {
-                string postdata = HttpUtility.BuildPostData(postQuery);
-                writer.Write(postdata);
-                writer.Flush();
-            }
+                if(browser.Url.AbsolutePath == "/login")
+                {
+                    browser.Document.GetElementById("email").InnerText = email;
+                    browser.Document.GetElementById("password").InnerText = password;
 
-            using (var res = webRequest.GetResponse())
-            using (var stream = res.GetResponseStream())
-            using (var reader = new StreamReader(stream))
+                    foreach (System.Windows.Forms.HtmlElement btn in browser.Document.GetElementsByTagName("button"))
+                    {
+                        if(btn.GetAttribute("class").Contains("login-button"))
+                        {
+                            btn.InvokeMember("click");
+                        }
+                    }
+                }
+                else if(browser.Url.AbsolutePath == "/browse")
+                { 
+                    netflix = Netflix.BuildFromSource(Netflix.BuildCoockieContainer(browser.Document.Cookie), browser.DocumentText);
+                    wait = false;
+                }
+            };
+
+            while(wait)
             {
-                var cookHeader = res.Headers[HttpResponseHeader.SetCookie];
-                var webRes = res as HttpWebResponse;
-                var cookies = webRes.Cookies;
-
-                CookieContainer cc = new CookieContainer();
-                cc.Add(cookies);
-
-                string source = reader.ReadToEnd();
-
-                netflix = Netflix.BuildFromSource(cc, source);
+                //Wait for it ~ Barney Stinson
             }
 
             return netflix;
         }
+
         #endregion
 
         public void Dispose()
