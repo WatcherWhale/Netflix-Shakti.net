@@ -54,7 +54,17 @@ namespace NetflixShakti
         [Description("Get the whole viewing history of the currently active profile.")]
         public Task<ViewHistory> GetViewHistory()
         {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+
             return Task.Run(() => GetViewHistoryTask());
+        }
+
+        [Description("Get the whole viewing history of the given profile.")]
+        public Task<ViewHistory> GetViewHistory(Profile prof)
+        {
+            return Task.Run(() => GetViewHistoryTask(prof));
         }
 
         private ViewHistory GetViewHistoryTask()
@@ -89,6 +99,37 @@ namespace NetflixShakti
             }
         }
 
+        private ViewHistory GetViewHistoryTask(Profile prof)
+        {
+            var currentProfile = Profiles.active;
+
+            SwitchProfileTask(prof);
+
+            List<ViewHistory> pages = new List<ViewHistory>();
+            bool loading = true;
+
+            while (loading)
+            {
+                var res = WebRequester.DoRequest(ApiVars.baseAPIUrl + Id + "/viewingactivity?pg=" + pages.Count, _cookieJar);
+
+                var page = res.DeserializeResponse<ViewHistory>();
+
+                if (page.viewedItems.Count == 0)
+                {
+                    loading = false;
+                }
+                else
+                {
+                    pages.Add(page);
+                }
+            }
+            
+            //Switch Back
+            SwitchProfileTask(currentProfile);
+
+            return GetViewHistoryFromPages(pages);
+        }
+
         private ViewHistory GetViewHistoryFromPages(List<ViewHistory> pages)
         {
             ViewHistory vh = new ViewHistory()
@@ -115,7 +156,17 @@ namespace NetflixShakti
         [Description("Get the whole rating history of the currently active profile.")]
         public Task<RatingList> GetRatingHistory()
         {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+
             return Task.Run(() => GetRatingHistoryTask());
+        }
+
+        [Description("Get the whole rating history of the given profile.")]
+        public Task<RatingList> GetRatingHistory(Profile prof)
+        {
+            return Task.Run(() => GetRatingHistoryTask(prof));
         }
 
         public RatingList GetRatingHistoryTask()
@@ -151,6 +202,49 @@ namespace NetflixShakti
             list.totalRatings = list.ratingItems.Count;
             list.size = list.totalRatings;
             list.page = 0;
+
+            return list;
+        }
+
+        public RatingList GetRatingHistoryTask(Profile prof)
+        {
+            var currentProfile = Profiles.active;
+
+            SwitchProfileTask(prof);
+
+            List<RatingList> pages = new List<RatingList>();
+            bool loading = true;
+
+            while (loading)
+            {
+                var res = WebRequester.DoRequest(ApiVars.baseAPIUrl + Id + "/ratinghistory?pg=" + pages.Count, _cookieJar);
+                var page = res.DeserializeResponse<RatingList>();
+
+                if (page.ratingItems.Count == 0)
+                {
+                    loading = false;
+                }
+                else
+                {
+                    pages.Add(page);
+                }
+            }
+
+            RatingList list = new RatingList();
+
+            foreach (RatingList page in pages)
+            {
+                foreach (Rating rat in page.ratingItems)
+                {
+                    list.ratingItems.Add(rat);
+                }
+            }
+
+            list.totalRatings = list.ratingItems.Count;
+            list.size = list.totalRatings;
+            list.page = 0;
+
+            SwitchProfile(currentProfile);
 
             return list;
         }
@@ -225,7 +319,7 @@ namespace NetflixShakti
         }
 
         [Description("Gets a list of list of movies that loads on the netflix homepage.")]
-        public Task<Lister> GetHomePageList()
+        private Task<Lister> GetHomePageList()
         {
             return Task.Run(() => GetHomePageListTask());
         }
@@ -313,7 +407,7 @@ namespace NetflixShakti
         }
 
         [Description("Login into a Netflix account. Returns null when invalid credentials are put in.")]
-        public static Task<Netflix> Login([Description("Email of a Netflix account")] string email, [Description("Password of this Netflix account")] string password)
+        public static Task<LoginContainer> Login([Description("Email of a Netflix account")] string email, [Description("Password of this Netflix account")] string password)
         {
             //Create a forms WebBrowser in main thread
             System.Windows.Forms.WebBrowser browser = new System.Windows.Forms.WebBrowser
@@ -326,7 +420,7 @@ namespace NetflixShakti
             return Task.Run(() => LoginTask(email, password,browser));
         }
 
-        public static Netflix LoginTask(string email, string password, System.Windows.Forms.WebBrowser browser)
+        public static LoginContainer LoginTask(string email, string password, System.Windows.Forms.WebBrowser browser)
         {
             int loginTry = 0;
             bool wait = true;
@@ -342,17 +436,20 @@ namespace NetflixShakti
                 if (browser.Url.ToString().Contains("/login"))
                 {
                     //Fill in the form
-                    browser.Document.GetElementById("email").InnerText = email;
-                    browser.Document.GetElementById("password").InnerText = password;
-                    browser.Document.GetElementById("bxid_rememberMe_true").SetAttribute("value", "false");
+                    var f_email = browser.Document.GetElementById("email");
+                    f_email.SetAttribute("value", email);
+                    f_email.InnerText = email;
 
-                    //Find the submit button
-                    foreach (System.Windows.Forms.HtmlElement btn in browser.Document.GetElementsByTagName("button"))
-                    {
-                        //Click the button
-                        btn.InvokeMember("click");
-                        loginTry++;
-                    }
+                    var f_pass = browser.Document.GetElementById("password");
+                    f_pass.SetAttribute("value", password);
+                    f_pass.InnerText = password;
+
+                    var f_rememberme = browser.Document.GetElementById("bxid_rememberMe_true");
+                    f_rememberme.SetAttribute("value", "false");
+
+                    //Submit the form
+                    browser.Document.Forms[0].InvokeMember("submit");
+                    loginTry++;
                 }
                 //When browser is navigated to the 'browse' page
                 else if (browser.Url.AbsolutePath == "/browse")
@@ -369,16 +466,15 @@ namespace NetflixShakti
 
             while (wait)
             {
-                if(loginTry >= ApiVars.TryLoginMax * 2)
+                if(loginTry >= ApiVars.TryLoginMax)
                 {
                     browser.DocumentCompleted -= handler;
-                    return null;
+                    return new LoginContainer() { Netflix = null, Browser = browser, Status = "Invalid crednetials." };
                 }
             }
 
             browser.DocumentCompleted -= handler;
-            browser.Dispose();
-            return netflix;
+            return new LoginContainer() {Netflix = netflix, Browser = browser,Status = "Logged in." };
         }
 
         #endregion
@@ -388,6 +484,26 @@ namespace NetflixShakti
             _cookieJar = null;
             Profiles = null;
             Id = "";
+        }
+    }
+
+    public class LoginContainer
+    {
+        internal Netflix Netflix { get; set; }
+        internal System.Windows.Forms.WebBrowser Browser { get; set; }
+
+        public string Status { get; internal set; }
+
+        public Netflix GetNetflix()
+        {
+            Browser.Dispose();
+            Browser = null;
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+
+            return Netflix;
         }
     }
 }

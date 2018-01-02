@@ -27,18 +27,19 @@ namespace NetflixShaktiExample
 
         private async void Login(string username, string password)
         {
-            _netflix = await Netflix.Login(username, password);
+             var login = await Netflix.Login(username, password);
+
+            _netflix = login.GetNetflix();
             if (_netflix != null)
             {
-                label3.Text = "Logged in";
+                label3.Text = login.Status;
                 label3.ForeColor = Color.Green;
 
                 SetupNetflix(_netflix);
-                Console.WriteLine("ss");
             }
             else
             {
-                label3.Text = "Invalid credentials.";
+                label3.Text = login.Status;
                 label3.ForeColor = Color.Red;
             }
         }
@@ -90,7 +91,7 @@ namespace NetflixShaktiExample
                 dropItem.Click += DropItem_Click;
             }
 
-            _netflix.GetHomePageList();
+            //_netflix.GetHomePageList();
         }
 
         private async void LoadHistory()
@@ -146,25 +147,8 @@ namespace NetflixShaktiExample
 
         private async void button3_Click(object sender, EventArgs e)
         {
-            /*SearchRequest request = new SearchRequest();
-            request.AddMultiStringVar(SearchType.Videos, new SearchName(70142441),
-                new string[] { "regularSynopsis", "evidence" },false);
-            request.AddSelectionVar(SearchType.Videos, new SearchName(70142441),
-                "genres",0,2,false,"id","name");
-            request.AddMultiSelectionVar(SearchType.Videos, new SearchName(70142441),
-                new string[] { "cast","directors","creators"}, 0, 4, false, "id", "name");
-
-            var response = await _netflix.Search(request);
-
-            foreach (var video in response.value.videos)
-            {
-                listBox1.Items.Add(video.Value.regularSynopsis);
-            }
-
-            foreach(var person in response.value.persons.Values)
-            {
-                listBox1.Items.Add(person.name);
-            }*/
+            NetflixShakti.Search.SearchRequest req = new SearchRequest("Doctor Who", "titles");
+            await _netflix.Search(req);
         }
 
         private void button4_Click(object sender, EventArgs e)
