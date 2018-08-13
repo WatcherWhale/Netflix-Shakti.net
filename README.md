@@ -1,3 +1,4 @@
+/!\ Currently not working
 # Netflix-Shakti.net
 An unofficial .net wrapper for the not so public Netflix Shakti API.
 It uses asynchronous methods to obtain information from the Shakti api.
