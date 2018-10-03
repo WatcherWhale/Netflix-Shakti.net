@@ -27,21 +27,9 @@ namespace NetflixShaktiExample
 
         private async void Login(string username, string password)
         {
-             var login = await Netflix.Login(username, password);
+            _netflix = await Netflix.Login(username, password);
 
-            _netflix = login.GetNetflix();
-            if (_netflix != null)
-            {
-                label3.Text = login.Status;
-                label3.ForeColor = Color.Green;
-
-                SetupNetflix(_netflix);
-            }
-            else
-            {
-                label3.Text = login.Status;
-                label3.ForeColor = Color.Red;
-            }
+            SetupNetflix(_netflix);
         }
 
         private void webBrowser1_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
@@ -71,7 +59,7 @@ namespace NetflixShaktiExample
 
         private async void SetupNetflix(Netflix _netflix)
         {
-
+            //await _netflix.LoadNetflixProfiles();
             var stream = await _netflix.Profiles.active.GetAvatarImageStream(AvatarSizes.Size64);
             profilesDropDown.Image = Image.FromStream(stream);
             activeUser.Text = _netflix.Profiles.active.firstName;

@@ -17,7 +17,13 @@ namespace NetflixShakti
             HttpWebRequest webRequest = request as HttpWebRequest;
             webRequest.CookieContainer = cookies;
 
-            var res = webRequest.GetResponse();
+            webRequest.BeginGetResponse((les) => 
+            {
+                var res = webRequest.GetResponse();
+                return null;
+            }, null);
+            
+            
 
             return new Response()
             {

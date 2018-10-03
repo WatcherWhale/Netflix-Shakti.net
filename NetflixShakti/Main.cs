@@ -10,6 +10,10 @@ using System.ComponentModel;
 
 using Newtonsoft.Json;
 
+using OpenQA.Selenium;
+using OpenQA.Selenium.Firefox;
+using OpenQA.Selenium.Support.UI;
+
 using NetflixShakti.Json;
 using NetflixShakti.Json.History;
 using NetflixShakti.Json.Profiles;
@@ -308,7 +312,7 @@ namespace NetflixShakti
             var res = WebRequester.DoRequest(ApiVars.baseAPIUrl + Id + "/profiles/switch?switchProfileGuid=" + prof.guid, _cookieJar);
 
             CookieContainer cc = new CookieContainer();
-            foreach (Cookie cookie in res.Cookies)
+            foreach (System.Net.Cookie cookie in res.Cookies)
             {
                 cc.Add(cookie);
             }
@@ -386,7 +390,7 @@ namespace NetflixShakti
         public static string GetIdFromSource(string browserSource)
         {
             int StartIndex = browserSource.LastIndexOf("\"BUILD_IDENTIFIER\":\"") + "\"BUILD_IDENTIFIER\":\"".Length;
-            return browserSource.Substring(StartIndex, 8);
+            return browserSource.Substring(StartIndex, 9);
         }
 
         [Description("Builds a cookiecontainer from a cookie string.")]
@@ -400,14 +404,14 @@ namespace NetflixShakti
                 string value = cookie.Substring(name.Length + 1);
                 string path = "/";
                 string domain = ".netflix.com";
-                cookieJar.Add(new Cookie(name.Trim(), value.Trim(), path, domain));
+                cookieJar.Add(new System.Net.Cookie(name.Trim(), value.Trim(), path, domain));
             }
 
             return cookieJar;
         }
 
         [Description("Login into a Netflix account. Returns null when invalid credentials are put in.")]
-        public static Task<LoginContainer> Login([Description("Email of a Netflix account")] string email, [Description("Password of this Netflix account")] string password)
+        public static Task<Netflix> Login([Description("Email of a Netflix account")] string email, [Description("Password of this Netflix account")] string password)
         {
             //Create a forms WebBrowser in main thread
             System.Windows.Forms.WebBrowser browser = new System.Windows.Forms.WebBrowser
@@ -417,64 +421,37 @@ namespace NetflixShakti
             };
 
             //Run Task
-            return Task.Run(() => LoginTask(email, password,browser));
+            return Task.Run(() => LoginTask(email, password));
         }
 
-        public static LoginContainer LoginTask(string email, string password, System.Windows.Forms.WebBrowser browser)
+        public static Netflix LoginTask(string email,string password)
         {
-            int loginTry = 0;
-            bool wait = true;
-            Netflix netflix = null;
+            IWebDriver driver = new FirefoxDriver();
+            driver.Navigate().GoToUrl(ApiVars.netflixUrl + "login");
 
-            //Navigate browser to the login page of Netflix
-            browser.Navigate(ApiVars.netflixUrl + "/login");
+            IWebElement f_email = driver.FindElement(By.Id("id_userLoginId"));
+            IWebElement f_password = driver.FindElement(By.Id("id_password"));
 
-            //Document completed event
-            System.Windows.Forms.WebBrowserDocumentCompletedEventHandler handler = (sender, e) =>
+            f_email.SendKeys(email);
+            f_password.SendKeys(password);
+
+            f_password.Submit();
+
+            var wait = new WebDriverWait(driver, new TimeSpan(100));
+            wait.Until(x => x.Url != ApiVars.netflixUrl + "login");
+
+            CookieContainer container = new CookieContainer();
+
+            foreach (var c in driver.Manage().Cookies.AllCookies)
             {
-                //When browser is navigated to 'login' page
-                if (browser.Url.ToString().Contains("/login"))
-                {
-                    //Fill in the form
-                    var f_email = browser.Document.GetElementById("email");
-                    f_email.SetAttribute("value", email);
-                    f_email.InnerText = email;
-
-                    var f_pass = browser.Document.GetElementById("password");
-                    f_pass.SetAttribute("value", password);
-                    f_pass.InnerText = password;
-
-                    var f_rememberme = browser.Document.GetElementById("bxid_rememberMe_true");
-                    f_rememberme.SetAttribute("value", "false");
-
-                    //Submit the form
-                    browser.Document.Forms[0].InvokeMember("submit");
-                    loginTry++;
-                }
-                //When browser is navigated to the 'browse' page
-                else if (browser.Url.AbsolutePath == "/browse")
-                {
-                    //Build netflix class from broser source
-                    netflix = Netflix.BuildFromSource(Netflix.BuildCoockieContainer(browser.Document.Cookie), browser.DocumentText);
-
-                    //Stop waiting to finish
-                    wait = false;
-                }
-            };
-
-            browser.DocumentCompleted += handler;
-
-            while (wait)
-            {
-                if(loginTry >= ApiVars.TryLoginMax)
-                {
-                    browser.DocumentCompleted -= handler;
-                    return new LoginContainer() { Netflix = null, Browser = browser, Status = "Invalid crednetials." };
-                }
+                System.Net.Cookie cookie = new System.Net.Cookie(c.Name, c.Value, c.Path, c.Domain);
+                container.Add(cookie);
             }
 
-            browser.DocumentCompleted -= handler;
-            return new LoginContainer() {Netflix = netflix, Browser = browser,Status = "Logged in." };
+            Netflix netflix = Netflix.BuildFromSource(container, driver.PageSource);
+            netflix.LoadNetflixProfilesTask();
+
+            return netflix;
         }
 
         #endregion
@@ -484,26 +461,6 @@ namespace NetflixShakti
             _cookieJar = null;
             Profiles = null;
             Id = "";
-        }
-    }
-
-    public class LoginContainer
-    {
-        internal Netflix Netflix { get; set; }
-        internal System.Windows.Forms.WebBrowser Browser { get; set; }
-
-        public string Status { get; internal set; }
-
-        public Netflix GetNetflix()
-        {
-            Browser.Dispose();
-            Browser = null;
-
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
-
-            return Netflix;
         }
     }
 }
